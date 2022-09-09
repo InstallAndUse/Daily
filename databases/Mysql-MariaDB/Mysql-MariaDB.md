@@ -83,3 +83,8 @@ mysql -u root
 FLUSH PRIVILEGES;
 SET PASSWORD FOR 'root'@'localhost' = PASSWORD('pass');
 ```
+
+
+
+Books:
+- [Anton's bookshelf](https://og2k.com/books/)

@@ -458,3 +458,9 @@ https://www.cisco.com/c/en/us/td/docs/security/asa/asa82/configuration/guide/con
 
 https://www.cisco.com/c/en/us/td/docs/security/asa/asa92/configuration/general/asa-general-cli/interface-basic-5505.pdf
 https://www.cisco.com/c/en/us/td/docs/security/asa/asa91/configuration/general/asa_91_general_config/route_static.pdf
+
+
+
+
+Books:
+- [Anton's bookshelf](https://og2k.com/books/)

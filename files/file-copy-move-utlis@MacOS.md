@@ -14,3 +14,9 @@ file managers
     xfile
     double commander
     wal commander
+
+
+
+
+Books:
+- [Anton's bookshelf](https://og2k.com/books/)

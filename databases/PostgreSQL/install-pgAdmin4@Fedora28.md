@@ -39,3 +39,7 @@ http://localhost/pgadmin4
 
 https://linuxhint.com/install-pgadmin4-ubuntu/
 http://yallalabs.com/linux/how-to-install-pgadmin-4-in-server-mode-on-ubuntu-16-04-lts/
+
+
+Books:
+- [Anton's bookshelf](https://og2k.com/books/)

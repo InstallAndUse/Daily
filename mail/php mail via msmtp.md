@@ -25,3 +25,8 @@ This email was sent using MSMTP via Gmail/Yahoo.
 
 (you)@lab2:~$ sudo touch /var/log/msmtp.log
 (you)@lab2:~$ sudo chown www-data:www-data /var/log/msmtp.log
+
+
+
+Books:
+- [Anton's bookshelf](https://og2k.com/books/)

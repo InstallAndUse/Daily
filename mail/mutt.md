@@ -12,3 +12,8 @@ T . (dot) [enter]
 t d
 q [enter]
 ```
+
+
+
+Books:
+- [Anton's bookshelf](https://og2k.com/books/)

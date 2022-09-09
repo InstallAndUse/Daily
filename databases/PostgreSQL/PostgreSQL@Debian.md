@@ -13,7 +13,7 @@
 
 
     # IPv4 local connections:
-    host    all             all             127.0.0.1/32            md5      
+    host    all             all             127.0.0.1/32            md5
     host    all             all             0.0.0.0/0               md5
     hostssl all             all             0.0.0.0/0               md5
 
@@ -43,7 +43,7 @@ list databases:
 \l
 
 list database roles:
-\dg  
+\dg
 
 log:
 (you)@(domain):~$ sudo tail -f /var/log/postgresql/postgresql-9.3-main.log
@@ -66,7 +66,7 @@ postgres=# GRANT ALL PRIVILEGES ON DATABASE "(domain)-current" TO "www-data";
 GRANT
 postgres=#
 
-$ sudo apt-get install php5-pgsql  
+$ sudo apt-get install php5-pgsql
 
 postgres=# REVOKE ALL PRIVILEGES ON DATABASE (domain) FROM wwwdata;
 postgres=# DROP USER wwwdata;
@@ -75,7 +75,7 @@ postgres=# CREATE DATABASE "(domain)-current" WITH OWNER=(user);
     CREATE DATABASE
 postgres=# \l
                                     List of databases
-      Name      |  Owner   | Encoding |   Collate   |    Ctype    |   Access privileges   
+      Name      |  Owner   | Encoding |   Collate   |    Ctype    |   Access privileges
 ----------------+----------+----------+-------------+-------------+-----------------------
  (d)            | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =Tc/postgres         +
                 |          |          |             |             | postgres=CTc/postgres+
@@ -98,3 +98,8 @@ postgres=#
 
 // list tables
 \dt
+
+
+
+Books:
+- [Anton's bookshelf](https://og2k.com/books/)

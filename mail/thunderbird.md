@@ -14,3 +14,8 @@ Thunderbird Addons (plugins, extensions) used and liked:
     Toggle Word Wrap
     CardBook
         CardDAV contacts synchronization (from NextCloud to ThunderBird)
+
+
+
+Books:
+- [Anton's bookshelf](https://og2k.com/books/)

@@ -36,3 +36,8 @@ CREATE USER (you)
 su
 vi /etc/paths
     /usr/local/pgsql/bin
+
+
+
+Books:
+- [Anton's bookshelf](https://og2k.com/books/)

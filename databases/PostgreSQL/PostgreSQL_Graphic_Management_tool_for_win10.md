@@ -124,3 +124,8 @@ BI tool, server install
 web-based
 Browser-based desktop GUI
 disappointed
+
+
+
+Books:
+- [Anton's bookshelf](https://og2k.com/books/)

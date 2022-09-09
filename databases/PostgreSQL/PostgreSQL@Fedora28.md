@@ -80,3 +80,8 @@ sudo nano /etc/postgresql/9.3/main/postgresql.conf
     listen_addresses = '*'         # what IP address(es) to listen on;
 
 (you)@lab:~$ psql -h (domain) (domain) postgres
+
+
+
+Books:
+- [Anton's bookshelf](https://og2k.com/books/)

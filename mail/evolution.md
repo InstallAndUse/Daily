@@ -55,3 +55,8 @@ certutil -d sql:$HOME/.pki/nssdb -M -n "(nickname)" -t Pu,Pu,Pu
 certutil -d sql:$HOME/.pki/nssdb -L
 
 # restart evolution
+
+
+
+Books:
+- [Anton's bookshelf](https://og2k.com/books/)

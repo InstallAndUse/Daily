@@ -92,3 +92,7 @@ https://fedoraproject.org/wiki/PostgreSQL
 
 ?????
 //   (domain)=# GRANT SELECT ON users TO PUBLIC;
+
+
+Books:
+- [Anton's bookshelf](https://og2k.com/books/)

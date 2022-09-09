@@ -118,3 +118,8 @@ mailman.conf
 (you)@(domain):~/temp-mailman$ sudo nano fix_url.py
     DEFAULT_URL_PATTERN = 'https://%s/mailman/'
 (you)@(domain):~/temp-mailman$ sudo withlist -l -r fix_url mailman
+
+
+
+Books:
+- [Anton's bookshelf](https://og2k.com/books/)
