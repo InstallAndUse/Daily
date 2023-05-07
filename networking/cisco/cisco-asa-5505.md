@@ -3,31 +3,143 @@ ciscoasa# show version
 
 # factory defaults
 ? configure factory-default
-confreg 0x2040
-relo
+? confreg 0x2040
+? relo
 
-# reset password
+# factory defaults
 # on console, during boot, hit ESC, enter ROMMON mode
-confreg 0x41
+ciscoasa> confreg 0x41
 boot
+
+# enter config mode, password is empty
+ciscoasa> enable
+ciscoasa> configure terminal
 
 # disable rebooting to normal state again
 ciscoasa(config)# config-register 0x1
 
 # after reboot, password is empty, set enable's password
 # (very strong password, use different admin user to process changes)
-enable password (password)
+# password in plain text
+ciscoasa(config)# enable password (password)
 
-# set hostname, print label, attach to device
-hostname (hostname)
+# save config and reboot
+ciscoasa(config)# write memory
+ciscoasa(config)# reload
 
 # enter config mode
-enable
-configure terminal
+ciscoasa> enable
+ciscoasa> configure terminal
 
+# set hostname, print label, attach to device
+ciscoasa(config) hostname (hostname)
+
+# disable call-home function
 # no callhome, please
-(config)# clear configure call-home
-(config)# no service call-home
+ciscoasa(config)# clear configure call-home
+ciscoasa(config)# no service call-home
+
+# show interfaces
+show interface ip brief
+show switch vlan
+
+# set up interfaces for VLAN interfaces (example: outside-inside)
+
+# if external VLAN is static and known
+ciscoasa(config)# interface vlan 10
+ciscoasa(config-if)# nameif outside
+# change level, if needed
+ciscoasa(config-if)# security-level 0
+ciscoasa(config-if)# ip address 192.168.1.2 255.225.255.0
+ciscoasa(config-if)# no shutdown
+ciscoasa(config-if)# exit
+
+# if external VLAN is dynaminc, unknown and uses DHCP
+ciscoasa(config)# interface vlan 10
+ciscoasa(config-if)# nameif outside
+# change level, if needed
+ciscoasa(config-if)# security-level 0
+# configure interface to use DHCP client and !set default route provided
+ciscoasa(config-if)# ip address dhcp setroute
+ciscoasa(config-if)# no shutdown
+ciscoasa(config-if)# exit
+
+# let's set up internal VLAN then (replace your subnet)
+ciscoasa(config)# interface vlan 20
+ciscoasa(config-if)# nameif inside
+ciscoasa(config-if)# ip address 192.168.2.1 255.225.255.0
+ciscoasa(config-if)# no shutdown
+ciscoasa(config-if)# exit
+
+# now let's configure physical ports
+# first one is our uplink (outside)
+ciscoasa(config)# interface ethernet 0/0
+ciscoasa(config-if)# no nameif
+ciscoasa(config-if)# no security-level
+ciscoasa(config-if)# no ip address
+ciscoasa(config-if)# switchport access vlan 10
+ciscoasa(config-if)# no shutdown
+ciscoasa(config-if)# exit
+
+# at this point, when cable will be connected to another device (router) with DHCP server:
+# ASA's DHCP client should obtain IP and show it, in my case:
+ciscoasa(config)# show interface vlan 10
+[...]
+         IP address 192.168.1.157, subnet mask 255.255.255.0
+[...]
+
+# let's configure internal physical interfaces (repeat for amount needed)
+ciscoasa(config)# interface ethernet 0/(1...7)
+ciscoasa(config-if)# switchport access vlan 20
+ciscoasa(config-if)# no shutdown
+ciscoasa(config-if)# exit
+
+# before internal connected devices begin to get IP addresses, ASA's DHCP server need to be configured
+# DHCP (Assign IP addresses to computers from the ASA device)
+# [Create a DHCP address pool to assign to clients. This address pool must be on the same subnet as the ASA interface]
+ciscoasa(config)# dhcpd address 192.168.1.100-192.168.1.199 inside
+ciscoasa(config)# dhcpd address 192.168.1.100-192.168.1.131 inside
+
+# if DNS client in use, get DNS info from it (from 'outside' VLAN)
+ciscoasa(config)# dhcpd auto_config outside
+
+# optionaly, specific DNS servers can be configured
+ciscoasa(config)# dhcpd dns 8.8.8.8 1.1.1.1
+
+# Enable the DHCP server on the inside interface
+ciscoasa(config)# dhcpd enable inside
+
+# now connected devices should get IP addresses
+# for windows: ipconfig /release, ipconfig /renew
+
+# at this point, good idea to save config and reboot
+# save config and reboot
+ciscoasa(config)# wr m
+ciscoasa(config)# relo
+
+# final check
+ciscoasa(config)# ping outside 8.8.8.8
+
+
+# configuring routing from VLAN 20 to VLAN 10 using NAT
+# Step 5: Configure PAT on the outside interface
+ciscoasa(config)# nat (inside) 1 0.0.0.0 0.0.0.0
+ciscoasa(config)# global (outside) 1 interface
+
+# for ASA 8.3 and later:
+ciscoasa(config)# object network obj_any
+ciscoasa(config)# subnet 0.0.0.0 0.0.0.0
+ciscoasa(config)# nat (inside,outside) dynamic interface
+
+
+# configuring routing without NAT
+ciscoasa(config)# no nat-control
+ciscoasa(config)# access-list INSIDE_IN extended permit ip any any
+ciscoasa(config)# access-group INSIDE_IN in interface inside
+
+
+
+
 
 # set clock
 ciscoasa# show clock
@@ -41,6 +153,9 @@ ciscoasa(config)# clock summer-time MST recurring 1 Sunday April 2:00 last Sunda
 hostname(config)# ntp server 10.1.1.1 key 1 prefer
 sh ntp associations
 sh ntp status
+
+
+
 
 # configure DNS
 #  Enables the ASA to send DNS requests to a DNS server to perform a name lookup for supported commands.
@@ -56,9 +171,8 @@ hostname(config)# dns server-group DefaultDNS
 hostname(config-dns-server-group)# name-server 10.1.1.5 192.168.1.67 209.165.201.6
 
 
-# disable call-home function
 
-# Enable Management Access with ASDM
+# if needed, Enable Management Access with ASDM
 # [Location of ASDM image on the ASA]
 ASA(config)# asdm image disk0:/asdm-647.bin
 # [Enable the http server on the device ]
@@ -69,13 +183,8 @@ ASA(config)# http 10.10.10.0 255.255.255.0 inside
 ASA(config)# username admin password adminpass
 
 
-# DHCP (Assign IP addresses to computers from the ASA device)
-# [Create a DHCP address pool to assign to clients. This address pool must be on the same subnet as the ASA interface]
-ciscoasa(config)# dhcpd address 192.168.1.101-192.168.1.110 inside
-# [The DNS servers to assign to clients via DHCP]
-ciscoasa(config)# dhcpd dns 8.8.8.8 8.8.8.8
-# [Enable the DHCP server on the inside interface]
-ciscoasa(config)# dhcpd enable inside
+
+
 
 
 # Permit Traffic Between Same Security Levels
@@ -93,10 +202,13 @@ access-list OUTSIDE-IN line 1 extended permit tcp 100.100.100.0 255.255.255.0 10
 
 # [The show conn command displays the number of active TCP and UDP connections, and provides information about connections of various types.]
 ciscoasa# show conn
+
 # [Shows all the connections through the appliance]
 ciscoasa# show conn all
+
 # [Shows HTTP GET, H323, and SIP connections that are in the “up” state]
 ciscoasa# show conn state up,http_get,h323,sip
+
 # [Shows overall connection counts]
 ciscoasa# show conn count
 54 in use, 123 most used
@@ -140,15 +252,18 @@ Source filename [running-config] ?
 # or (will not ask source)
 ciscoasa# write memory
 
+
 # enable logging
 ASA(config)# logging enable
 ASA(config)# logging timestamp
 ASA(config)# logging buffer-size 65536
 ASA(config)# logging buffered warnings
 ASA(config)# logging asdm errors
+
 # send to syslog, if needed
 ASA(config)# logging host inside 192.168.1.30
 ASA(config)# logging trap errors
+
 
 # permit local aaa
 hostname(config)# aaa authorization exec authentication-server
@@ -162,6 +277,7 @@ username (username) nopassword
 username (username) password (password)
 
 # delete user
+? no username
 
 # give user privileges
 username (username) password (password) privilege 15
@@ -175,17 +291,17 @@ ciscoasa(config-username)# exit
 # add ssh access
 ASA#configure terminal
 ASA(config)#domain-name local.local
-     ASA(config)#aaa authentication ssh console LOCAL
 ciscoasa(config)#aaa authentication ssh console LOCAL
-                 aaa authentication ssh console LOCAL
 ciscoasa(config)#crypto key generate rsa modulus 2048
      ASA(config)#crypto key generate rsa general-keys modulus 1024
 ASA(config)#ssh 192.168.1.10 255.255.255.255 inside
 ASA(config)#ssh 0.0.0.0 0.0.0.0 OUTSIDE
 # verify which encryptions are enabled
-
 # connect via ssh (some routers use SSH1)
 show ssh
+
+
+
 
 # Image Software Management
 # [Copy image file from TFTP to Flash of ASA]
@@ -202,52 +318,18 @@ ciscoasa# copy tftp flash
 # [At next reboot, the firewall will use the software image “asa911-k8.bin” from flash]
 ciscoasa(config)# boot system flash:/asa911-k8.bin
 
-# show interfaces
-show interface ip brief
-show switch vlan
 
-# set up interfaces for VLAN interfaces (example: outside-inside)
-ciscoasa(config)# interface Vlan 10
-ciscoasa(config-if)# nameif outside
-ciscoasa(config-if)# security-level 80
-ciscoasa(config-if)# ip address 192.168.100.77 255.225.255.0
-ciscoasa(config-if)# no shutdown
-ciscoasa(config-if)# exit
 
-ciscoasa(config)# interface Vlan 20
-ciscoasa(config-if)# nameif lab5
-ciscoasa(config-if)# security-level 90
-ciscoasa(config-if)# ip address 192.168.2.1 255.225.255.0
-ciscoasa(config-if)# no shutdown
-ciscoasa(config-if)# exit
-
-ciscoasa(config)# interface Ethernet 0/0
-ciscoasa(config-if)# no nameif
-ciscoasa(config-if)# no security-level
-ciscoasa(config-if)# no ip address
-ciscoasa(config-if)# switchport access vlan 10
-ciscoasa(config-if)# no shutdown
-ciscoasa(config-if)# exit
-
+# Power over Ethernet
 # (same for 0/6 PoE, deskphone)
 ciscoasa(config)# interface Ethernet 0/6
-
-# Step 5: Configure PAT on the outside interface
-ASA5505(config)# global (outside) 1 interface
-ASA5505(config)# nat (inside) 1 0.0.0.0 0.0.0.0
-
-# for ASA 8.3 and later:
-object network obj_any
-subnet 0.0.0.0 0.0.0.0
-nat (inside,outside) dynamic interface
 
 # to check PoE status
 show power inline
 
-# configure interface to use DHCP client and set default route provided
-ciscoasa(config-if)# ip address dhcp setroute
 
-show nameif
+
+
 
 # trunk port
 show interfaces trunk
@@ -293,35 +375,29 @@ hostname(config)# same-security-traffic permit inter-interface
 
 
 
-# The absolutely necessary Interface Sub-commands that you need to configure in order for the interface to pass traffic are the following:
-# Assigns a name to an interface
-nameif “interface name”
-# Assigns an IP address to the interface
-ip address “ip_address” “subnet_mask”
-# Assigns a security level to the interface
-security-level “number 0 to 100”
-# By default all interfaces are shut down, so enable them.
-no shutdown
 
 
 
-# Network Address Translation (NAT)
+
+
+# ? Network Address Translation (NAT)
 [Configure PAT for internal LAN (192.168.1.0/24) to access the Internet using the outside interface]
 ciscoasa(config)# object network internal_lan
 ciscoasa(config-network-object)# subnet 192.168.1.0 255.255.255.0
 ciscoasa(config-network-object)# nat (inside,outside) dynamic interface
 
-# [Configure PAT for all (“any”) networks to access the Internet using the outside interface]
+
+# ? [Configure PAT for all (“any”) networks to access the Internet using the outside interface]
 ciscoasa(config)# object network obj_any
 ciscoasa(config-network-object)# subnet 0.0.0.0 0.0.0.0
 ciscoasa(config-network-object)# nat  (any,outside) dynamic interface
 
-# [Configure static NAT. The private IP 192.168.1.1 in DMZ will be mapped statically to public IP 100.1.1.1 in outside zone]
+# ? [Configure static NAT. The private IP 192.168.1.1 in DMZ will be mapped statically to public IP 100.1.1.1 in outside zone]
 ciscoasa(config)# object network web_server_static
 ciscoasa(config-network-object)# host 192.168.1.1
 ciscoasa(config-network-object)# nat (DMZ , outside) static 100.1.1.1
 
-# [Configure static Port NAT. The private IP 192.168.1.1 in DMZ will be mapped statically to public IP 100.1.1.1 in outside zone only for port 80]
+# ? [Configure static Port NAT. The private IP 192.168.1.1 in DMZ will be mapped statically to public IP 100.1.1.1 in outside zone only for port 80]
 ciscoasa(config)# object network web_server_static
 ciscoasa(config-network-object)# host 192.168.1.1
 ciscoasa(config-network-object)# nat (DMZ , outside) static 100.1.1.1 service tcp 80 80
@@ -430,14 +506,15 @@ show capture capin
 # general commands
 show run | include route
 
-# enable unsupported tranceiver
+# enable unsupported (SFP) tranceiver
 service unsupported-transceiver
 no errdisable detect cause gbic-invalid
 
-
-
 # save (commit)
 write mem
+
+
+
 
 
 # set up VPN
