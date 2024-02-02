@@ -1,5 +1,5 @@
 ## CISCO ASA 5505
-ciscoasa# show version
+ciscoasa(config)# show version
 
 # factory defaults
 ? configure factory-default
@@ -30,12 +30,12 @@ ciscoasa(config)# reload
 # enter config mode
 ciscoasa> enable
 ciscoasa> configure terminal
+ciscoasa> conf t
 
 # set hostname, print label, attach to device
-ciscoasa(config) hostname (hostname)
+ciscoasa(config)# hostname (hostname)
 
-# disable call-home function
-# no callhome, please
+# disable call-home function. no callhome, please
 ciscoasa(config)# clear configure call-home
 ciscoasa(config)# no service call-home
 
@@ -98,13 +98,12 @@ ciscoasa(config-if)# exit
 # DHCP (Assign IP addresses to computers from the ASA device)
 # [Create a DHCP address pool to assign to clients. This address pool must be on the same subnet as the ASA interface]
 ciscoasa(config)# dhcpd address 192.168.1.100-192.168.1.199 inside
-ciscoasa(config)# dhcpd address 192.168.1.100-192.168.1.131 inside
 
 # if DNS client in use, get DNS info from it (from 'outside' VLAN)
 ciscoasa(config)# dhcpd auto_config outside
 
 # optionaly, specific DNS servers can be configured
-ciscoasa(config)# dhcpd dns 8.8.8.8 1.1.1.1
+ciscoasa(config)# dhcpd dns 9.9.9.9 1.1.1.1
 
 # Enable the DHCP server on the inside interface
 ciscoasa(config)# dhcpd enable inside
@@ -118,7 +117,7 @@ ciscoasa(config)# wr m
 ciscoasa(config)# relo
 
 # final check
-ciscoasa(config)# ping outside 8.8.8.8
+ciscoasa(config)# ping outside 1.1.1.1
 
 
 # configuring routing from VLAN 20 to VLAN 10 using NAT
@@ -140,133 +139,136 @@ ciscoasa(config)# access-group INSIDE_IN in interface inside
 
 
 
+# configure DNS
+#  Enables the ASA to send DNS requests to a DNS server to perform a name lookup for supported commands.
+#        command: dns domain-lookup interface_name
+ciscoasa(config)# dns domain-lookup inside
 
-# set clock
-ciscoasa# show clock
-ciscoasa# clock set 07:29:00 May 06 2019
+# Specifies the DNS server group that the ASA uses for outgoing requests.
+#        command: dns server-group DefaultDNS
+ciscoasa(config)# dns server-group DefaultDNS
+
+# Specifies one or more DNS servers. You can enter all six IP addresses in the same command, separated by spaces,
+#                         command: name-server ip_address [ip_address2] [...] [ip_address6]
+ciscoasa(config-dns-server-group)# name-server 10.1.1.5 192.168.1.67 209.165.201.6
+
+
+
+# set clock manually
+ciscoasa(config)# show clock
+ciscoasa(config)# clock set 07:29:00 May 06 2019
 ciscoasa(config)# clock timezone UTC +3
 # if DST presents
 ciscoasa(config)# clock summer-time MST recurring 1 Sunday April 2:00 last Sunday October 2:00
 
-# set NTP
+# set NTP (Network Time Protocol) to obtain time automatically
 # ntp server ip_address [ key key_id ] [ source interface_name ] [ prefer ]
-hostname(config)# ntp server 10.1.1.1 key 1 prefer
-sh ntp associations
-sh ntp status
+ciscoasa(config)# ntp server 10.1.1.1 key 1 prefer
+ciscoasa(config)# sh ntp associations
+ciscoasa(config)# sh ntp status
 
-
-
-
-# configure DNS
-#  Enables the ASA to send DNS requests to a DNS server to perform a name lookup for supported commands.
-# dns domain-lookup interface_name
-hostname(config)# dns domain-lookup inside
-
-# Specifies the DNS server group that the ASA uses for outgoing requests.
-# dns server-group DefaultDNS
-hostname(config)# dns server-group DefaultDNS
-
-# Specifies one or more DNS servers. You can enter all six IP addresses in the same command, separated by spaces,
-# name-server ip_address [ip_address2] [...] [ip_address6]
-hostname(config-dns-server-group)# name-server 10.1.1.5 192.168.1.67 209.165.201.6
-
+# act as NTP server
+?
 
 
 # if needed, Enable Management Access with ASDM
 # [Location of ASDM image on the ASA]
-ASA(config)# asdm image disk0:/asdm-647.bin
+ciscoasa(config)#  asdm image disk0:/asdm-647.bin
 # [Enable the http server on the device ]
-ASA(config)# http server enable
+ciscoasa(config)#  http server enable
 # [Tell the device which IP addresses are allowed to connect with HTTP (ASDM)]
-ASA(config)# http 10.10.10.0 255.255.255.0 inside
+ciscoasa(config)#  http 10.10.10.0 255.255.255.0 inside
 # [Configure user/pass to login with ASDM]
-ASA(config)# username admin password adminpass
-
-
-
+ciscoasa(config)#  username admin password adminpass
 
 
 
 # Permit Traffic Between Same Security Levels
-# [Permits communication between different interfaces that have the same security level.]
+# Permits communication between different interfaces that have the same security level.
 ciscoasa(config)# same-security-traffic permit inter-interface
-# [Permits traffic to enter and exit the same interface.]
+# Permits traffic to enter and exit the same interface.
 ciscoasa(config)# same-security-traffic permit intra-interface
 
 
 # Useful Verification and Troubleshooting Commands
 # [Shows hit-counts on ACL with name “OUTSIDE-IN”. It shows how many hits each entry has on the ACL]
-ciscoasa# show access-list OUTSIDE-IN
+ciscoasa(config)# show access-list OUTSIDE-IN
 Sample output:
 access-list OUTSIDE-IN line 1 extended permit tcp 100.100.100.0 255.255.255.0 10.10.10.0 255.255.255.0 eq telnet (hitcnt=15) 0xca10ca21
 
 # [The show conn command displays the number of active TCP and UDP connections, and provides information about connections of various types.]
-ciscoasa# show conn
+ciscoasa(config)# show conn
 
 # [Shows all the connections through the appliance]
-ciscoasa# show conn all
+ciscoasa(config)# show conn all
 
 # [Shows HTTP GET, H323, and SIP connections that are in the “up” state]
-ciscoasa# show conn state up,http_get,h323,sip
+ciscoasa(config)# show conn state up,http_get,h323,sip
 
 # [Shows overall connection counts]
-ciscoasa# show conn count
+ciscoasa(config)# show conn count
 54 in use, 123 most used
 
 # [show CPU utilization]
-ciscoasa# show cpu usage
+ciscoasa(config)# show cpu usage
+
+# show system performance
+ciscoasa(config)# show processes cpu-usage
+ciscoasa(config)# show processes memory
 
 # [List the contents of the internal flash disk of the ASA]
-ciscoasa# show disk
+ciscoasa(config)# show disk
 
 # [Displays operating information about hardware system components such as CPU, fans, power supply, temperature etc]
-ciscoasa# show environment
+? ciscoasa(config)# show environment
 
 # [Displays maximum physical memory and current free memory]
-ciscoasa# show memory
+ciscoasa(config)# show memory
 
 # [Displays information about Active/Standby failover status] (ERROR: Command requires failover license)
-ciscoasa# show failover
+ciscoasa(config)# show failover
 
 # [Shows information about Interfaces, such as line status, packets received/sent, IP address etc]
-ciscoasa# show interface
+ciscoasa(config)# show interface
 
 # [Displays the network states of local hosts. A local-host is created for any host that forwards traffic to, or through, the ASA.]
-ciscoasa# show local-host
+ciscoasa(config)# show local-host
 
 # [Displays the routing table]
-ciscoasa# show route
+ciscoasa(config)# show route
 
 # [Displays information about NAT sessions]
-ciscoasa# show xlate
+ciscoasa(config)# show xlate
 
 
 # show configs
-ciscoasa# show startup-config
-ciscoasa# show running-config
+ciscoasa(config)# show startup-config
+ciscoasa(config)# show running-config
 
 # save configs to memory
-ciscoasa# copy run start
+ciscoasa(config)# write memory
+ciscoasa(config)# wr m
+ciscoasa(config)# copy running-config startup-config
+ciscoasa(config)# copy run start
 Source filename [running-config] ?
 # [enter] to confirm
 # or (will not ask source)
-ciscoasa# write memory
 
 
 # enable logging
-ASA(config)# logging enable
-ASA(config)# logging timestamp
-ASA(config)# logging buffer-size 65536
-ASA(config)# logging buffered warnings
-ASA(config)# logging asdm errors
+ciscoasa(config)# logging enable
+ciscoasa(config)# logging timestamp
+ciscoasa(config)# logging buffer-size 65536
+ciscoasa(config)# logging buffered warnings
+ciscoasa(config)# logging asdm errors
 
 # send to syslog, if needed
-ASA(config)# logging host inside 192.168.1.30
-ASA(config)# logging trap errors
+ciscoasa(config)# logging host inside 192.168.1.30
+ciscoasa(config)# logging trap errors
 
 
 # permit local aaa
-hostname(config)# aaa authorization exec authentication-server
+ciscoasa(config)# aaa authorization exec authentication-server
 
 # add user
 username (username) nopassword
@@ -288,14 +290,14 @@ ciscoasa(config-username)# service-type remote-access
 ciscoasa(config-username)# exit
 
 
-# add ssh access
+# add SSH access
 ASA#configure terminal
-ASA(config)#domain-name local.local
+ciscoasa(config)#domain-name local.local
 ciscoasa(config)#aaa authentication ssh console LOCAL
 ciscoasa(config)#crypto key generate rsa modulus 2048
-     ASA(config)#crypto key generate rsa general-keys modulus 1024
-ASA(config)#ssh 192.168.1.10 255.255.255.255 inside
-ASA(config)#ssh 0.0.0.0 0.0.0.0 OUTSIDE
+ciscoasa(config)#crypto key generate rsa general-keys modulus 1024
+ciscoasa(config)#ssh 192.168.1.10 255.255.255.255 inside
+ciscoasa(config)#ssh 0.0.0.0 0.0.0.0 OUTSIDE
 # verify which encryptions are enabled
 # connect via ssh (some routers use SSH1)
 show ssh
@@ -305,7 +307,7 @@ show ssh
 
 # Image Software Management
 # [Copy image file from TFTP to Flash of ASA]
-ciscoasa# copy tftp flash
+ciscoasa(config)# copy tftp flash
 
 
 # copy file to USB
@@ -323,6 +325,7 @@ ciscoasa(config)# boot system flash:/asa911-k8.bin
 # Power over Ethernet
 # (same for 0/6 PoE, deskphone)
 ciscoasa(config)# interface Ethernet 0/6
+# ?
 
 # to check PoE status
 show power inline
@@ -370,10 +373,7 @@ ciscoasa(config-if)# route outside 0.0.0.0 0.0.0.0 192.168.100.1 1
 ciscoasa(config)# route inside 192.168.2.0 255.255.255.0 192.168.1.1
 
 # same level security traffic
-hostname(config)# same-security-traffic permit inter-interface
-
-
-
+ciscoasa(config)# same-security-traffic permit inter-interface
 
 
 
@@ -385,7 +385,6 @@ hostname(config)# same-security-traffic permit inter-interface
 ciscoasa(config)# object network internal_lan
 ciscoasa(config-network-object)# subnet 192.168.1.0 255.255.255.0
 ciscoasa(config-network-object)# nat (inside,outside) dynamic interface
-
 
 # ? [Configure PAT for all (“any”) networks to access the Internet using the outside interface]
 ciscoasa(config)# object network obj_any
@@ -401,12 +400,6 @@ ciscoasa(config-network-object)# nat (DMZ , outside) static 100.1.1.1
 ciscoasa(config)# object network web_server_static
 ciscoasa(config-network-object)# host 192.168.1.1
 ciscoasa(config-network-object)# nat (DMZ , outside) static 100.1.1.1 service tcp 80 80
-
-
-
-
-
-
 
 
 
@@ -491,7 +484,7 @@ no ip access-group access-list-name {in | out}
 # let host out:
 access-list (zone) extended permit udp host (ip) host (ip) eq (port)
 access-list (zone) extended permit tcp host (ip) host (ip) eq (port)
-access-list (zone) extended permit tcp any4 host (ip) eq https
+access-list (zone) extended permit tcp any4      host (ip) eq https
 
 # write configuration
 wr (copy running-config startup-config)
@@ -519,9 +512,9 @@ write mem
 
 # set up VPN
 # [show details about IPSEC VPNs like packets encrypted/decrypted, tunnel peers etc]
-ciscoasa# show crypto ipsec sa
+ciscoasa(config)# show crypto ipsec sa
 # [show details if an IPSEC VPN tunnel is up or not. MM_ACTIVE means the tunnel is up]
-ciscoasa# show crypto isakmp sa
+ciscoasa(config)# show crypto isakmp sa
 
 
 
