@@ -4,9 +4,16 @@
 # this script will show time and date in different locations
 # Author: Anton TETERIN
 # web:    https://2dz.fi
+
+#
+# list of zones:
+# >>> from pytz import country_names, country_timezones
+# >>> all_timezones = [country_timezones.get(country) for country in country_names]
+# >>> all_timezones
 #
 
 # 2024-04-28  * init /A
+# 2024-05-22  + doc to list timezones /A
 
 from datetime import datetime
 import pytz
@@ -22,7 +29,9 @@ zones = [
     "Europe/Moscow",
     "Asia/Riyadh",
     "Asia/Dubai",
-    "Asia/Sakhalin"
+    "Asia/Ho_Chi_Minh",
+    "Asia/Bangkok",
+    "Asia/Sakhalin",
 ]
 
 for zone in zones:
