@@ -1,1 +1,0 @@
-'netstat' is not in use anymore, use 'ss'

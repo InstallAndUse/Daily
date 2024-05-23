@@ -1,8 +1,1 @@
-# daily
-Daily routine enhancements, cheatsheets, know-hows, lifehacks
-
-
-
-
-Books:
-- [Anton's bookshelf](https://og2k.com/books/)
+moved to https://gogs.2dz.fi/InstallAndUse/Daily
